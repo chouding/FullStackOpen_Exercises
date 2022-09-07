@@ -36,15 +36,21 @@ const App = () => {
       copyID = copyID.id
     }
 
-    if (copyID !== undefined && 
+    if (!(personObject.name) || !(personObject.number)) {
+      setMessage('Unable to add person to server, name and/or number must not be empty')
+      setIsError(true)
+    }
+    else if (copyID !== undefined && 
        window.confirm(`${personObject.name} is already added to phone book, replace the old number with a new one?`)) {
        phoneService
        .update(copyID, personObject)
-       .then(response => {
-        setPersons(persons.map(person => person.id !== copyID ? person : personObject))
+       .then(updatedPersonObj => {
+        setPersons(persons.map(person => person.id !== copyID ? person : updatedPersonObj))
+        setMessage(`Successfully altered ${personObject.name}'s number to ${personObject.number}`)
+        setIsError(false)
        })
        .catch(error => {
-        setMessage(`Information of ${personObject.name} has already been removed from the server`)
+        setMessage(`${error.response.data.error}`)
         setIsError(true)
        })
     }
@@ -53,12 +59,16 @@ const App = () => {
       .create(personObject)
       .then(response => {
         setPersons(persons.concat(response))
+        setMessage(`Added ${personObject.name}`)
+        setIsError(false)
       })
-      setMessage(`Added ${personObject.name}`)
+      .catch(error => {
+        setMessage(`${error.response.data.error}`)
+        setIsError(true)
+      })
     }
     setNewName('')
     setNewNumber('')
-    setIsError(false)
     setTimeout(() => setMessage(''), 6000)
   }
 
@@ -76,7 +86,6 @@ const App = () => {
   }
 
   const filterPeople = persons.filter(person => person.name.toLowerCase().includes(filterName))
-
 
   return (
     <div>
