@@ -11,16 +11,16 @@ app.use(express.json())
 app.use(cors())
 
 
-morgan.token('person', (req, res) => {
+morgan.token('person', (req) => {
   const name = req.body.name
   const number = req.body.number
-  return JSON.stringify({name: name, number: number})
+  return JSON.stringify({ name: name, number: number })
 })
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :person'))
 
 
 const PORT = process.env.PORT || 3001
-  app.listen(PORT, () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
 
@@ -38,20 +38,21 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response, next) => {
-  Person.findById(request.params.id).then(person => {
-    if (person) {
-      response.json(person)
-    } else {
-      response.status(404).end()
-    }
-  })
-  .catch(error =>  {
-    next(error)
-  })
+  Person.findById(request.params.id)
+    .then(person => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error =>  {
+      next(error)
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-  Person.findByIdAndRemove(request.params.id).then(person => {
+  Person.findByIdAndRemove(request.params.id).then(() => {
     response.status(204).end()
   })
 })
@@ -60,7 +61,7 @@ app.post('/api/persons', (request, response, next) => {
   const person = request.body
 
   if (!(person.name) || !(person.number)) {
-    response.status(404).json({error: 'name or number is missing'})
+    response.status(404).json({ error: 'name or number is missing' })
   }
 
   else {
